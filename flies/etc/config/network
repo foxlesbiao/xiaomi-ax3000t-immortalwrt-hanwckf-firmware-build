@@ -1,0 +1,36 @@
+config interface 'loopback'
+	option device 'lo'
+	option proto 'static'
+	option ipaddr '127.0.0.1'
+	option netmask '255.0.0.0'
+
+config globals 'globals'
+	option ula_prefix 'fd...::/48'
+
+# 确保 WAN 独占物理层，不被聚合干扰
+config interface 'wan'
+	option device 'eth0.2'
+	option proto 'pppoe'
+	option username '你的账号'
+	option password '你的密码'
+
+# 定义聚合组：只聚合逻辑 LAN (eth0.1) 和 物理口 (eth1)
+config device
+	option name 'bond0'
+	option type 'bonding'
+	list ports 'eth0.1'
+	list ports 'eth1'
+	option mode 'balance-xor'
+	option xmit_hash_policy 'layer2+3'
+
+# 挂载到网桥
+config device
+	option name 'br-lan'
+	option type 'bridge'
+	list ports 'bond0'
+
+config interface 'lan'
+	option device 'br-lan'
+	option proto 'static'
+	option ipaddr '192.168.31.1'
+	option netmask '255.255.255.0'
